@@ -3,20 +3,21 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Áudios de Gênesis</title>
+  <title>Gênesis — MP3 com Highlight Avançado</title>
   <style>
     body { font-family: Arial, sans-serif; background: #f9f9f9; padding: 2rem; max-width: 700px; margin: auto; }
     .verse { background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 1rem; margin-bottom: 1.5rem; }
     h2 { color: #333; }
-    audio { width: 100%; margin-top: 0.5rem; }
+    .text { margin: 0.5rem 0; }
+    .word { transition: color 0.1s; }
+    button { margin-top: 0.5rem; padding: 0.3rem 0.6rem; }
   </style>
 </head>
 <body>
-  <h1>📖 Gênesis — Áudio em Inglês e Português</h1>
+  <h1>📖 Gênesis — MP3 com Highlight Avançado</h1>
   <div id="container"></div>
 
   <script>
-    // Lista com referência, texto e arquivos
     const verses = [
       {
         ref: "Gênesis 1:1",
@@ -43,18 +44,62 @@
 
     const container = document.getElementById("container");
 
-    verses.forEach(v => {
+    function createWordSpans(text, id) {
+      // separa palavras incluindo pontuação
+      const words = text.match(/\S+|\n/g) || [];
+      return words.map((w, i) => `<span class="word" id="${id}-w${i}">${w}</span>`).join(" ");
+    }
+
+    verses.forEach((v, index) => {
       const div = document.createElement("div");
       div.className = "verse";
       div.innerHTML = `
         <h2>${v.ref}</h2>
-        <p><strong>EN:</strong> ${v.enText}</p>
-        <audio controls><source src="${v.enFile}" type="audio/mpeg"></audio>
-        <p><strong>PT:</strong> ${v.ptText}</p>
-        <audio controls><source src="${v.ptFile}" type="audio/mpeg"></audio>
+
+        <p class="text" id="en-${index}"><strong>EN:</strong> ${createWordSpans(v.enText, 'en-'+index)}</p>
+        <button onclick="playAudio('en-${index}', '${v.enFile}')">🔊 Falar EN</button>
+
+        <p class="text" id="pt-${index}"><strong>PT:</strong> ${createWordSpans(v.ptText, 'pt-'+index)}</p>
+        <button onclick="playAudio('pt-${index}', '${v.ptFile}')">🔊 Falar PT</button>
       `;
       container.appendChild(div);
     });
+
+    function playAudio(textId, file) {
+      const audio = new Audio(file);
+      const textEl = document.getElementById(textId);
+      const words = textEl.querySelectorAll(".word");
+      words.forEach(w => w.style.color = "black"); // reset
+
+      audio.addEventListener('loadedmetadata', () => {
+        const totalTime = audio.duration;
+
+        // soma dos comprimentos das palavras
+        const totalChars = Array.from(words).reduce((sum, w) => sum + w.innerText.length, 0);
+        
+        // calcula tempo proporcional para cada palavra
+        const timings = Array.from(words).map(w => (w.innerText.length / totalChars) * totalTime * 1000);
+
+        let currentWord = 0;
+
+        function highlightNext() {
+          if(currentWord > 0) words[currentWord-1].style.color = "black";
+          if(currentWord < words.length) {
+            words[currentWord].style.color = "red";
+            setTimeout(highlightNext, timings[currentWord]);
+            currentWord++;
+          }
+        }
+
+        audio.play();
+        highlightNext();
+
+        audio.onended = () => {
+          words.forEach(w => w.style.color = "black");
+        };
+      });
+    }
   </script>
 </body>
 </html>
+
