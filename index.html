@@ -46,10 +46,7 @@
 
     const container = document.getElementById("container");
     let currentAudio = null;
-    let currentWordIndex = 0;
-    let wordTimers = [];
-    let isPaused = false;
-    let pauseTime = 0;
+    let rafId = null;
 
     function renderTextWithSpans(text) {
       return text.split(" ").map(w => `<span class="word">${w}</span>`).join(" ");
@@ -73,25 +70,36 @@
     });
 
     function playVerse(index) {
-      clearTimers();
       if (currentAudio) {
+        cancelAnimationFrame(rafId);
         currentAudio.pause();
         currentAudio.currentTime = 0;
       }
+
       currentAudio = document.getElementById(`audio-${index}`);
       const textElement = document.getElementById(`en-${index}`);
-      highlightWords(textElement, verses[index].enText, currentAudio);
+      const words = textElement.querySelectorAll(".word");
+
+      // limpa estilos
+      words.forEach(w => w.classList.remove("highlight"));
+
       currentAudio.play();
+      syncWords(currentAudio, words);
+
+      currentAudio.onended = () => {
+        cancelAnimationFrame(rafId);
+        words.forEach(w => w.classList.remove("highlight"));
+      };
     }
 
     function togglePause(index) {
       if (!currentAudio) return;
       if (currentAudio.paused) {
         currentAudio.play();
-        isPaused = false;
+        syncWords(currentAudio, document.getElementById(`en-${index}`).querySelectorAll(".word"));
       } else {
         currentAudio.pause();
-        isPaused = true;
+        cancelAnimationFrame(rafId);
       }
     }
 
@@ -100,36 +108,21 @@
       pt.style.display = pt.style.display === "none" ? "block" : "none";
     }
 
-    function highlightWords(element, text, audio) {
-      const words = element.querySelectorAll(".word");
-      words.forEach(w => w.classList.remove("highlight"));
-
-      const duration =  audio.duration > 0 ? audio.duration : 5; // fallback
-      const wordDuration = duration / words.length;
-
-      currentWordIndex = 0;
-      wordTimers = [];
-
-      words.forEach((word, i) => {
-        const timer = setTimeout(() => {
-          words.forEach(w => w.classList.remove("highlight"));
-          word.classList.add("highlight");
-        }, i * wordDuration * 1000);
-        wordTimers.push(timer);
-      });
-
-      audio.onended = () => {
-        clearTimers();
-        words.forEach(w => w.classList.remove("highlight"));
-      };
+    function syncWords(audio, words) {
+      function step() {
+        if (!audio.paused) {
+          const progress = audio.currentTime / audio.duration;
+          const wordIndex = Math.floor(progress * words.length);
+          words.forEach((w, i) => {
+            w.classList.toggle("highlight", i === wordIndex);
+          });
+        }
+        rafId = requestAnimationFrame(step);
+      }
+      step();
     }
 
-    function clearTimers() {
-      wordTimers.forEach(t => clearTimeout(t));
-      wordTimers = [];
-    }
-
-    // Play All in English
+    // Play All
     document.getElementById("playAll").addEventListener("click", async () => {
       for (let i = 0; i < verses.length; i++) {
         await new Promise(resolve => {
