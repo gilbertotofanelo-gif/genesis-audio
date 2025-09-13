@@ -26,11 +26,6 @@
     .controls button {
       margin-right: 0.5rem;
       margin-top: 0.5rem;
-      padding: 0.4rem 0.8rem;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 0.9rem;
     }
     .global-controls {
       text-align: center;
@@ -61,7 +56,7 @@
   </h1>
   <div style="text-align: center; margin-top: 20px;">
     <button id="playAllEN" style="font-size:12px;">▶️ Todos/Inglês</button>
-    <button id="playAllPT" style="font-size:12px;">▶️ Todosk/Português</button>
+    <button id="playAllPT" style="font-size:12px; background-color:#4caf50; color:white;">▶️ Todos1/Português</button>
   </div>
 
   <div id="container"></div>
@@ -107,8 +102,8 @@
         <p class="en" id="en-${i}">${renderTextWithSpans(v.enText)}</p>
         <div class="controls">
           <button style="background-color:#4caf50; color:white;" onclick="toggleTranslation(${i})">🌐 Tradução</button>
-          <button style="background-color:#3f51b5; color:white;" onclick="togglePause(${i}, 'en')">⏸️ Pause</button>
-          <button style="background-color:#3f51b5; color:white;" onclick="playVerse(${i}, 'en')">▶️ Play</button>
+          <button onclick="togglePause(${i}, 'en')">⏸️ Pause</button>
+          <button onclick="playVerse(${i}, 'en')">▶️ Play</button>
         </div>
         <div id="pt-wrapper-${i}" style="display:none;">
           <p class="pt" id="pt-${i}">${renderTextWithSpans(v.ptText)}</p>
