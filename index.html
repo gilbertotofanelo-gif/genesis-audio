@@ -5,16 +5,45 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Audio de Gênesis</title>
   <style>
-    body { font-family: Arial, sans-serif; background: #f9f9f9; padding: 2rem; max-width: 700px; margin: auto; }
-    .verse { background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 1rem; margin-bottom: 1.5rem; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
+      padding: 2rem;
+      max-width: 700px;
+      margin: auto;
+    }
+    .verse {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+    }
     h2 { color: #333; }
     audio { width: 100%; margin-top: 0.5rem; }
     .word { transition: color 0.2s ease; }
     .highlight { color: red; }
-    .controls button { margin-right: 0.5rem; margin-top: 0.5rem; }
-    .global-controls { text-align: center; margin-bottom: 1.5rem; }
-    .global-controls button { margin: 0 0.5rem; padding: 0.5rem 1rem; border: none; border-radius: 5px; cursor: pointer; font-size: 1rem; background-color: #673ab7; color: white; }
-    .global-controls button:hover { background-color: #5e35b1; }
+    .controls button {
+      margin-right: 0.5rem;
+      margin-top: 0.5rem;
+    }
+    .global-controls {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    .global-controls button {
+      margin: 0 0.5rem;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1rem;
+      background-color: #673ab7;
+      color: white;
+    }
+    .global-controls button:hover {
+      background-color: #5e35b1;
+    }
     .ref-title {
       font-size: 12px;
       color: red;
@@ -23,16 +52,14 @@
 </head>
 <body>
   <h1 style="font-size: 18px; text-align: center; margin-bottom: 1rem;">
-  📖 Gênesis — Inglês e Português
-</h1>
+    📖 Gênesis — Inglês e Português
+  </h1>
   <div style="text-align: center; margin-top: 20px;">
-  <button id="playAllEN" style="font-size:12px;">▶️ Todos/Inglês</button>
-  <button id="playAllPT" style="font-size:12px;">▶️ Todos/Português</button>
-</div>
+    <button id="playAllEN" style="font-size:12px;">▶️ Todos/Inglês</button>
+    <button id="playAllPT" style="font-size:12px;">▶️ Todos/Português</button>
+  </div>
 
-<div id="container"></div>
-
-<div id="container"></div>
+  <div id="container"></div>
 
   <script>
     const verses = [
@@ -77,13 +104,13 @@
           <button onclick="toggleTranslation(${i})">🌐 Tradução</button>
           <button onclick="togglePause(${i}, 'en')">⏸️ Pause</button>
           <button onclick="playVerse(${i}, 'en')">▶️ Play</button>
-                    
         </div>
-        <p class="pt" id="pt-${i}" style="display:none;">${renderTextWithSpans(v.ptText)}</p>
-        <div class="controls">
-          <button onclick="togglePause(${i}, 'pt')">⏸️ Pause</button>
-          <button onclick="playVerse(${i}, 'pt')">▶️ Play</button>
-          
+        <div id="pt-wrapper-${i}" style="display:none;">
+          <p class="pt" id="pt-${i}">${renderTextWithSpans(v.ptText)}</p>
+          <div class="controls">
+            <button onclick="togglePause(${i}, 'pt')">⏸️ Pause</button>
+            <button onclick="playVerse(${i}, 'pt')">▶️ Play</button>
+          </div>
         </div>
         <audio id="audio-en-${i}" src="${v.enFile}"></audio>
         <audio id="audio-pt-${i}" src="${v.ptFile}"></audio>
@@ -127,8 +154,8 @@
     }
 
     function toggleTranslation(index) {
-      const pt = document.getElementById(`pt-${index}`);
-      pt.style.display = pt.style.display === "none" ? "block" : "none";
+      const wrapper = document.getElementById(`pt-wrapper-${index}`);
+      wrapper.style.display = wrapper.style.display === "none" ? "block" : "none";
     }
 
     function syncWords(audio, words) {
@@ -145,7 +172,6 @@
       step();
     }
 
-    // Play All EN
     document.getElementById("playAllEN").addEventListener("click", async () => {
       for (let i = 0; i < verses.length; i++) {
         await new Promise(resolve => {
@@ -155,7 +181,6 @@
       }
     });
 
-    // Play All PT
     document.getElementById("playAllPT").addEventListener("click", async () => {
       for (let i = 0; i < verses.length; i++) {
         await new Promise(resolve => {
