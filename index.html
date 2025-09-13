@@ -8,16 +8,15 @@
     body { font-family: Arial, sans-serif; background: #f9f9f9; padding: 2rem; max-width: 700px; margin: auto; }
     .verse { background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 1rem; margin-bottom: 1.5rem; }
     h2 { color: #333; }
-    .highlight { color: red; font-weight: bold; }
-    .btn { margin-top: 0.5rem; margin-right: 0.5rem; padding: 0.4rem 0.8rem; border: none; border-radius: 5px; cursor: pointer; }
-    .btn-play { background: #4caf50; color: white; }
-    .btn-trans { background: #2196f3; color: white; }
-    .btn-global { background: #673ab7; color: white; margin-bottom: 1rem; }
+    audio { width: 100%; margin-top: 0.5rem; }
+    .word { transition: color 0.2s ease; }
+    .highlight { color: red; }
+    .controls button { margin-right: 0.5rem; }
   </style>
 </head>
 <body>
   <h1>📖 Gênesis — Áudio em Inglês e Tradução</h1>
-  <button class="btn btn-global" id="playAll">▶️ Tocar todos em Inglês</button>
+  <button id="playAll">▶️ Tocar todos em Inglês</button>
   <div id="container"></div>
 
   <script>
@@ -46,88 +45,96 @@
     ];
 
     const container = document.getElementById("container");
+    let currentAudio = null;
+    let currentWordIndex = 0;
+    let wordTimers = [];
+    let isPaused = false;
+    let pauseTime = 0;
 
-    const audios = []; // guardar todos os áudios
-    const wordGroups = []; // guardar spans de cada verso
+    function renderTextWithSpans(text) {
+      return text.split(" ").map(w => `<span class="word">${w}</span>`).join(" ");
+    }
 
     verses.forEach((v, i) => {
       const div = document.createElement("div");
       div.className = "verse";
-
-      // separar as palavras do texto inglês
-      const words = v.enText.split(" ");
-      const spanWords = words.map(w => `<span>${w}</span>`).join(" ");
-
       div.innerHTML = `
         <h2>${v.ref}</h2>
-        <p><strong>EN:</strong> <span id="en-${i}">${spanWords}</span></p>
-        <audio id="audio-${i}" preload="auto">
-          <source src="${v.enFile}" type="audio/mpeg">
-        </audio>
-        <button class="btn btn-play" id="play-${i}">▶️ Play</button>
-        <button class="btn btn-trans" id="trans-${i}">Tradução</button>
-        <div id="pt-${i}" style="display:none; margin-top:0.5rem;">
-          <p><strong>PT:</strong> ${v.ptText}</p>
+        <p class="en" id="en-${i}">${renderTextWithSpans(v.enText)}</p>
+        <div class="controls">
+          <button onclick="playVerse(${i})">▶️ Play</button>
+          <button onclick="togglePause(${i})">⏸️ Pause/Resume</button>
+          <button onclick="toggleTranslation(${i})">🌐 Tradução</button>
         </div>
+        <p class="pt" id="pt-${i}" style="display:none;">${v.ptText}</p>
+        <audio id="audio-${i}" src="${v.enFile}"></audio>
       `;
-
       container.appendChild(div);
-
-      const audio = div.querySelector(`#audio-${i}`);
-      const playBtn = div.querySelector(`#play-${i}`);
-      const spans = div.querySelectorAll(`#en-${i} span`);
-      const transBtn = div.querySelector(`#trans-${i}`);
-      const ptDiv = div.querySelector(`#pt-${i}`);
-
-      audios.push(audio);
-      wordGroups.push(spans);
-
-      // Alternar Play/Pause individual
-      playBtn.addEventListener("click", () => {
-        if (audio.paused) {
-          audio.play();
-          playBtn.textContent = "⏸️ Pause";
-        } else {
-          audio.pause();
-          playBtn.textContent = "▶️ Play";
-        }
-      });
-
-      // Resetar botão quando terminar
-      audio.addEventListener("ended", () => {
-        playBtn.textContent = "▶️ Play";
-      });
-
-      // Destaque aproximado por tempo
-      audio.addEventListener("play", () => {
-        const interval = audio.duration / words.length;
-        let current = 0;
-        spans.forEach(s => s.classList.remove("highlight"));
-
-        const timer = setInterval(() => {
-          if (audio.paused || current >= spans.length) {
-            clearInterval(timer);
-            return;
-          }
-          spans.forEach(s => s.classList.remove("highlight"));
-          spans[current].classList.add("highlight");
-          current++;
-        }, interval * 1000);
-      });
-
-      // Alternar tradução
-      transBtn.addEventListener("click", () => {
-        ptDiv.style.display = ptDiv.style.display === "none" ? "block" : "none";
-      });
     });
 
-    // Botão global "Tocar todos em Inglês"
+    function playVerse(index) {
+      clearTimers();
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
+      }
+      currentAudio = document.getElementById(`audio-${index}`);
+      const textElement = document.getElementById(`en-${index}`);
+      highlightWords(textElement, verses[index].enText, currentAudio);
+      currentAudio.play();
+    }
+
+    function togglePause(index) {
+      if (!currentAudio) return;
+      if (currentAudio.paused) {
+        currentAudio.play();
+        isPaused = false;
+      } else {
+        currentAudio.pause();
+        isPaused = true;
+      }
+    }
+
+    function toggleTranslation(index) {
+      const pt = document.getElementById(`pt-${index}`);
+      pt.style.display = pt.style.display === "none" ? "block" : "none";
+    }
+
+    function highlightWords(element, text, audio) {
+      const words = element.querySelectorAll(".word");
+      words.forEach(w => w.classList.remove("highlight"));
+
+      const duration =  audio.duration > 0 ? audio.duration : 5; // fallback
+      const wordDuration = duration / words.length;
+
+      currentWordIndex = 0;
+      wordTimers = [];
+
+      words.forEach((word, i) => {
+        const timer = setTimeout(() => {
+          words.forEach(w => w.classList.remove("highlight"));
+          word.classList.add("highlight");
+        }, i * wordDuration * 1000);
+        wordTimers.push(timer);
+      });
+
+      audio.onended = () => {
+        clearTimers();
+        words.forEach(w => w.classList.remove("highlight"));
+      };
+    }
+
+    function clearTimers() {
+      wordTimers.forEach(t => clearTimeout(t));
+      wordTimers = [];
+    }
+
+    // Play All in English
     document.getElementById("playAll").addEventListener("click", async () => {
-      for (let i = 0; i < audios.length; i++) {
-        const audio = audios[i];
+      for (let i = 0; i < verses.length; i++) {
         await new Promise(resolve => {
-          audio.play();
-          audio.addEventListener("ended", resolve, { once: true });
+          playVerse(i);
+          currentAudio.onended = resolve;
         });
       }
     });
