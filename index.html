@@ -11,12 +11,18 @@
     audio { width: 100%; margin-top: 0.5rem; }
     .word { transition: color 0.2s ease; }
     .highlight { color: red; }
-    .controls button { margin-right: 0.5rem; }
+    .controls button { margin-right: 0.5rem; margin-top: 0.5rem; }
+    .global-controls { text-align: center; margin-bottom: 1.5rem; }
+    .global-controls button { margin: 0 0.5rem; padding: 0.5rem 1rem; border: none; border-radius: 5px; cursor: pointer; font-size: 1rem; background-color: #673ab7; color: white; }
+    .global-controls button:hover { background-color: #5e35b1; }
   </style>
 </head>
 <body>
-  <h1>📖 Gênesis — Áudio em Inglês e Tradução</h1>
-  <button id="playAll">▶️ Tocar todos em Inglês</button>
+  <h1>📖 Gênesis — Áudio em Inglês e Português</h1>
+  <div class="global-controls">
+    <button id="playAllEN">▶️ Tocar todos em Inglês</button>
+    <button id="playAllPT">▶️ Tocar todos em Português</button>
+  </div>
   <div id="container"></div>
 
   <script>
@@ -59,28 +65,32 @@
         <h2>${v.ref}</h2>
         <p class="en" id="en-${i}">${renderTextWithSpans(v.enText)}</p>
         <div class="controls">
-          <button onclick="playVerse(${i})">▶️ Play</button>
-          <button onclick="togglePause(${i})">⏸️ Pause/Resume</button>
+          <button onclick="playVerse(${i}, 'en')">▶️ Play EN</button>
+          <button onclick="togglePause(${i}, 'en')">⏸️ Pause/Resume EN</button>
           <button onclick="toggleTranslation(${i})">🌐 Tradução</button>
         </div>
-        <p class="pt" id="pt-${i}" style="display:none;">${v.ptText}</p>
-        <audio id="audio-${i}" src="${v.enFile}"></audio>
+        <p class="pt" id="pt-${i}" style="display:none;">${renderTextWithSpans(v.ptText)}</p>
+        <div class="controls">
+          <button onclick="playVerse(${i}, 'pt')">▶️ Play PT</button>
+          <button onclick="togglePause(${i}, 'pt')">⏸️ Pause/Resume PT</button>
+        </div>
+        <audio id="audio-en-${i}" src="${v.enFile}"></audio>
+        <audio id="audio-pt-${i}" src="${v.ptFile}"></audio>
       `;
       container.appendChild(div);
     });
 
-    function playVerse(index) {
+    function playVerse(index, lang) {
       if (currentAudio) {
         cancelAnimationFrame(rafId);
         currentAudio.pause();
         currentAudio.currentTime = 0;
       }
 
-      currentAudio = document.getElementById(`audio-${index}`);
-      const textElement = document.getElementById(`en-${index}`);
+      currentAudio = document.getElementById(`audio-${lang}-${index}`);
+      const textElement = document.getElementById(`${lang}-${index}`);
       const words = textElement.querySelectorAll(".word");
 
-      // limpa estilos
       words.forEach(w => w.classList.remove("highlight"));
 
       currentAudio.play();
@@ -92,13 +102,15 @@
       };
     }
 
-    function togglePause(index) {
-      if (!currentAudio) return;
-      if (currentAudio.paused) {
-        currentAudio.play();
-        syncWords(currentAudio, document.getElementById(`en-${index}`).querySelectorAll(".word"));
+    function togglePause(index, lang) {
+      const audio = document.getElementById(`audio-${lang}-${index}`);
+      const words = document.getElementById(`${lang}-${index}`).querySelectorAll(".word");
+
+      if (audio.paused) {
+        audio.play();
+        syncWords(audio, words);
       } else {
-        currentAudio.pause();
+        audio.pause();
         cancelAnimationFrame(rafId);
       }
     }
@@ -110,7 +122,7 @@
 
     function syncWords(audio, words) {
       function step() {
-        if (!audio.paused) {
+        if (!audio.paused && audio.duration > 0) {
           const progress = audio.currentTime / audio.duration;
           const wordIndex = Math.floor(progress * words.length);
           words.forEach((w, i) => {
@@ -122,11 +134,21 @@
       step();
     }
 
-    // Play All
-    document.getElementById("playAll").addEventListener("click", async () => {
+    // Play All EN
+    document.getElementById("playAllEN").addEventListener("click", async () => {
       for (let i = 0; i < verses.length; i++) {
         await new Promise(resolve => {
-          playVerse(i);
+          playVerse(i, 'en');
+          currentAudio.onended = resolve;
+        });
+      }
+    });
+
+    // Play All PT
+    document.getElementById("playAllPT").addEventListener("click", async () => {
+      for (let i = 0; i < verses.length; i++) {
+        await new Promise(resolve => {
+          playVerse(i, 'pt');
           currentAudio.onended = resolve;
         });
       }
