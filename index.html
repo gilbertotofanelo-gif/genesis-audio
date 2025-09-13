@@ -53,22 +53,6 @@
       font-size: 12px;
       color: red;
     }
-    /* Botões de inglês: azul */
-    .en-btn {
-      background-color: #3f51b5;
-      color: white;
-    }
-    .en-btn:hover {
-      background-color: #3949ab;
-    }
-    /* Botões de português: verde */
-    .pt-btn {
-      background-color: #4caf50;
-      color: white;
-    }
-    .pt-btn:hover {
-      background-color: #43a047;
-    }
   </style>
 </head>
 <body>
@@ -77,7 +61,7 @@
   </h1>
   <div style="text-align: center; margin-top: 20px;">
     <button id="playAllEN" style="font-size:12px;">▶️ Todos/Inglês</button>
-    <button id="playAllPT" style="font-size:12px;">▶️ Todosv/Português</button>
+    <button id="playAllPT" style="font-size:12px;">▶️ Todosk/Português</button>
   </div>
 
   <div id="container"></div>
@@ -122,15 +106,15 @@
         <h2 class="ref-title">${v.ref}</h2>
         <p class="en" id="en-${i}">${renderTextWithSpans(v.enText)}</p>
         <div class="controls">
-          <button class="pt-btn" onclick="toggleTranslation(${i})">🌐 Tradução</button>
-          <button class="en-btn" onclick="togglePause(${i}, 'en')">⏸️ Pause</button>
-          <button class="en-btn" onclick="playVerse(${i}, 'en')">▶️ Play</button>
+          <button style="background-color:#4caf50; color:white;" onclick="toggleTranslation(${i})">🌐 Tradução</button>
+          <button style="background-color:#3f51b5; color:white;" onclick="togglePause(${i}, 'en')">⏸️ Pause</button>
+          <button style="background-color:#3f51b5; color:white;" onclick="playVerse(${i}, 'en')">▶️ Play</button>
         </div>
         <div id="pt-wrapper-${i}" style="display:none;">
           <p class="pt" id="pt-${i}">${renderTextWithSpans(v.ptText)}</p>
           <div class="controls">
-            <button class="pt-btn" onclick="togglePause(${i}, 'pt')">⏸️ Pause</button>
-            <button class="pt-btn" onclick="playVerse(${i}, 'pt')">▶️ Play</button>
+            <button style="background-color:#4caf50; color:white;" onclick="togglePause(${i}, 'pt')">⏸️ Pause</button>
+            <button style="background-color:#4caf50; color:white;" onclick="playVerse(${i}, 'pt')">▶️ Play</button>
           </div>
         </div>
         <audio id="audio-en-${i}" src="${v.enFile}"></audio>
