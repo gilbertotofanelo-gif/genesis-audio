@@ -65,14 +65,14 @@
         <h2>${v.ref}</h2>
         <p class="en" id="en-${i}">${renderTextWithSpans(v.enText)}</p>
         <div class="controls">
-          <button onclick="playVerse(${i}, 'en')">▶️ Play EN</button>
-          <button onclick="togglePause(${i}, 'en')">⏸️ Pause/Resume EN</button>
+          <button onclick="playVerse(${i}, 'en')">▶️ Play</button>
+          <button onclick="togglePause(${i}, 'en')">⏸️ Pause/Resume</button>
           <button onclick="toggleTranslation(${i})">🌐 Tradução</button>
         </div>
         <p class="pt" id="pt-${i}" style="display:none;">${renderTextWithSpans(v.ptText)}</p>
         <div class="controls">
-          <button onclick="playVerse(${i}, 'pt')">▶️ Play PT</button>
-          <button onclick="togglePause(${i}, 'pt')">⏸️ Pause/Resume PT</button>
+          <button onclick="playVerse(${i}, 'pt')">▶️ Play</button>
+          <button onclick="togglePause(${i}, 'pt')">⏸️ Pause/Resume</button>
         </div>
         <audio id="audio-en-${i}" src="${v.enFile}"></audio>
         <audio id="audio-pt-${i}" src="${v.ptFile}"></audio>
