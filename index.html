@@ -1,105 +1,179 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Gênesis — MP3 com Highlight Avançado</title>
-  <style>
-    body { font-family: Arial, sans-serif; background: #f9f9f9; padding: 2rem; max-width: 700px; margin: auto; }
-    .verse { background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 1rem; margin-bottom: 1.5rem; }
-    h2 { color: #333; }
-    .text { margin: 0.5rem 0; }
-    .word { transition: color 0.1s; }
-    button { margin-top: 0.5rem; padding: 0.3rem 0.6rem; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gênesis — Pronúncia em Inglês Sequencial</title>
+<style>
+body { font-family: Arial, sans-serif; background: #f9f9f9; padding: 2rem; max-width: 800px; margin: auto; }
+.verse { background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 1rem; margin-bottom: 1.5rem; }
+h2 { color: #333; }
+.text { margin: 0.5rem 0; }
+.word { transition: color 0.1s; }
+button { margin-top: 0.5rem; padding: 0.3rem 0.6rem; margin-right: 0.3rem; }
+</style>
 </head>
 <body>
-  <h1>📖 Gênesis — MP3 com Highlight Avançado</h1>
-  <div id="container"></div>
+<h1>📖 Gênesis — Pronúncia em Inglês Sequencial</h1>
+<div id="container"></div>
+<button onclick="playAllEnglish()">▶️ Tocar Todos em Inglês</button>
+<button onclick="pauseAudio()">⏸️ Pausar</button>
+<button onclick="resumeAudio()">▶️ Retomar</button>
 
-  <script>
-    const verses = [
-      {
-        ref: "Gênesis 1:1",
-        enText: "In the beginning God created the heavens and the earth.",
-        ptText: "No princípio Deus criou os céus e a terra.",
-        enFile: "genesis-1-1-en.mp3",
-        ptFile: "genesis-1-1-pt.mp3"
-      },
-      {
-        ref: "Gênesis 1:2",
-        enText: "Now the earth was formless and desolate, and there was darkness upon the surface of the watery deep, and God’s active force was moving about over the surface of the waters.",
-        ptText: "A terra era vazia e deserta, e havia escuridão sobre as águas profundas; e a força ativa de Deus movia-se sobre as águas.",
-        enFile: "genesis-1-2-en.mp3",
-        ptFile: "genesis-1-2-pt.mp3"
-      },
-      {
-        ref: "Gênesis 1:3",
-        enText: "And God said, 'Let there be light,' and there was light.",
-        ptText: "Então Deus disse: 'Que haja luz.' E houve luz.",
-        enFile: "genesis-1-3-en.mp3",
-        ptFile: "genesis-1-3-pt.mp3"
-      }
-    ];
+<script>
+const verses = [
+  {
+    ref: "Gênesis 1:1",
+    enText: "In the beginning God created the heavens and the earth.",
+    enFile: "genesis-1-1-en.mp3"
+  },
+  {
+    ref: "Gênesis 1:2",
+    enText: "Now the earth was formless and desolate, and there was darkness upon the surface of the watery deep, and God’s active force was moving about over the surface of the waters.",
+    enFile: "genesis-1-2-en.mp3"
+  },
+  {
+    ref: "Gênesis 1:3",
+    enText: "And God said, 'Let there be light,' and there was light.",
+    enFile: "genesis-1-3-en.mp3"
+  }
+];
 
-    const container = document.getElementById("container");
+const container = document.getElementById("container");
+let currentAudio = null;
+let currentWords = [];
+let currentWordIndex = 0;
+let currentTimers = [];
+let verseIndex = 0;
 
-    function createWordSpans(text, id) {
-      // separa palavras incluindo pontuação
-      const words = text.match(/\S+|\n/g) || [];
-      return words.map((w, i) => `<span class="word" id="${id}-w${i}">${w}</span>`).join(" ");
-    }
+// Cria spans de palavras
+function createWordSpans(text, id){
+  const words = text.match(/\S+|\n/g) || [];
+  return words.map((w,i)=>`<span class="word" id="${id}-w${i}">${w}</span>`).join(" ");
+}
 
-    verses.forEach((v, index) => {
-      const div = document.createElement("div");
-      div.className = "verse";
-      div.innerHTML = `
-        <h2>${v.ref}</h2>
+// Cria interface dos versos
+verses.forEach((v,index)=>{
+  const div = document.createElement("div");
+  div.className = "verse";
+  div.innerHTML = `
+    <h2>${v.ref}</h2>
+    <p class="text" id="en-${index}"><strong>EN:</strong> ${createWordSpans(v.enText,'en-'+index)}</p>
+    <button onclick="playAudio('en-${index}','${v.enFile}')">▶️ Falar EN</button>
+    <button onclick="pauseAudio()">⏸️ Pausar</button>
+    <button onclick="resumeAudio()">▶️ Retomar</button>
+  `;
+  container.appendChild(div);
+});
 
-        <p class="text" id="en-${index}"><strong>EN:</strong> ${createWordSpans(v.enText, 'en-'+index)}</p>
-        <button onclick="playAudio('en-${index}', '${v.enFile}')">🔊 Falar EN</button>
+function resetHighlight(){
+  if(currentWords){
+    currentWords.forEach(w=>w.style.color='black');
+  }
+}
 
-        <p class="text" id="pt-${index}"><strong>PT:</strong> ${createWordSpans(v.ptText, 'pt-'+index)}</p>
-        <button onclick="playAudio('pt-${index}', '${v.ptFile}')">🔊 Falar PT</button>
-      `;
-      container.appendChild(div);
+function clearTimers(){
+  currentTimers.forEach(t=>clearTimeout(t));
+  currentTimers = [];
+}
+
+// Função para tocar um verso em inglês com highlight
+function playAudio(textId,file,callback){
+  if(currentAudio){
+    currentAudio.pause();
+    resetHighlight();
+    clearTimers();
+  }
+
+  const textEl = document.getElementById(textId);
+  currentWords = textEl.querySelectorAll(".word");
+  currentWords.forEach(w=>w.style.color='black');
+  currentWordIndex = 0;
+
+  currentAudio = new Audio(file);
+
+  currentAudio.addEventListener('loadedmetadata',()=>{
+    const totalTime = currentAudio.duration;
+    const chars = Array.from(currentWords).map(w=>w.innerText.length);
+    const totalChars = chars.reduce((a,b)=>a+b,0);
+    const timings = chars.map(c => (c/totalChars)*totalTime*1000); // ms aproximados por palavra
+
+    let elapsed = 0;
+    currentWords.forEach((w,i)=>{
+      const timer = setTimeout(()=>{
+        if(i>0) currentWords[i-1].style.color='black';
+        currentWords[i].style.color='red';
+        currentWordIndex = i;
+      }, elapsed);
+      currentTimers.push(timer);
+      elapsed += timings[i];
     });
 
-    function playAudio(textId, file) {
-      const audio = new Audio(file);
-      const textEl = document.getElementById(textId);
-      const words = textEl.querySelectorAll(".word");
-      words.forEach(w => w.style.color = "black"); // reset
+    const endTimer = setTimeout(()=>{
+      resetHighlight();
+      currentAudio=null;
+      clearTimers();
+      if(callback) callback(); // chama o próximo verso
+    }, elapsed + 100);
+    currentTimers.push(endTimer);
 
-      audio.addEventListener('loadedmetadata', () => {
-        const totalTime = audio.duration;
+    currentAudio.play();
+  });
+}
 
-        // soma dos comprimentos das palavras
-        const totalChars = Array.from(words).reduce((sum, w) => sum + w.innerText.length, 0);
-        
-        // calcula tempo proporcional para cada palavra
-        const timings = Array.from(words).map(w => (w.innerText.length / totalChars) * totalTime * 1000);
-
-        let currentWord = 0;
-
-        function highlightNext() {
-          if(currentWord > 0) words[currentWord-1].style.color = "black";
-          if(currentWord < words.length) {
-            words[currentWord].style.color = "red";
-            setTimeout(highlightNext, timings[currentWord]);
-            currentWord++;
-          }
-        }
-
-        audio.play();
-        highlightNext();
-
-        audio.onended = () => {
-          words.forEach(w => w.style.color = "black");
-        };
+// Função para tocar todos os versos em sequência
+function playAllEnglish(){
+  verseIndex = 0;
+  function playNext(){
+    if(verseIndex < verses.length){
+      playAudio(`en-${verseIndex}`, verses[verseIndex].enFile, ()=>{
+        verseIndex++;
+        playNext();
       });
     }
-  </script>
+  }
+  playNext();
+}
+
+// Pausar e retomar
+function pauseAudio(){
+  if(currentAudio){
+    currentAudio.pause();
+    clearTimers();
+  }
+}
+
+function resumeAudio(){
+  if(currentAudio && currentWordIndex < currentWords.length){
+    const remainingWords = Array.from(currentWords).slice(currentWordIndex);
+    const totalTime = currentAudio.duration - currentAudio.currentTime;
+    const chars = remainingWords.map(w=>w.innerText.length);
+    const totalChars = chars.reduce((a,b)=>a+b,0);
+    const timings = chars.map(c => (c/totalChars)*totalTime*1000);
+
+    let elapsed = 0;
+    remainingWords.forEach((w,i)=>{
+      const timer = setTimeout(()=>{
+        if(i>0) remainingWords[i-1].style.color='black';
+        w.style.color='red';
+        currentWordIndex++;
+      }, elapsed);
+      currentTimers.push(timer);
+      elapsed += timings[i];
+    });
+
+    const endTimer = setTimeout(()=>{
+      resetHighlight();
+      currentAudio=null;
+      clearTimers();
+      verseIndex++;
+      if(verseIndex < verses.length) playAllEnglish();
+    }, elapsed + 100);
+    currentTimers.push(endTimer);
+
+    currentAudio.play();
+  }
+}
+</script>
 </body>
 </html>
-
