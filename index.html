@@ -22,20 +22,30 @@
 
   <script>
     // Exemplo de frases (simulando o que viria da planilha)
-    const sentences = [
-      {
-        en: "In the beginning God created the heavens and the earth.",
-        pt: "No princípio, Deus criou os céus e a terra.",
-        audioEn: "audio1-en.mp3",
-        audioPt: "audio1-pt.mp3"
-      },
-      {
-        en: "And the earth was without form, and void; and darkness was upon the face of the deep.",
-        pt: "A terra era sem forma e vazia; e havia trevas sobre a face do abismo.",
-        audioEn: "audio2-en.mp3",
-        audioPt: "audio2-pt.mp3"
-      }
-    ];
+    const verses = [
+  {
+    ref: "Gênesis 1:1",
+    enText: "In the beginning God created the heavens and the earth.",
+    ptText: "No princípio Deus criou os céus e a terra.",
+    enFile: "audio1-en.mp3",
+    ptFile: "audio1-pt.mp3"
+  },
+  {
+    ref: "Gênesis 1:2",
+    enText: "Now the earth was formless and desolate, and there was darkness upon the surface of the watery deep, and God’s active force was moving about over the surface of the waters.",
+    ptText: "A terra era vazia e deserta, e havia escuridão sobre as águas profundas; e a força ativa de Deus movia-se sobre as águas.",
+    enFile: "audio2-en.mp3",
+    ptFile: "audio2-pt.mp3"
+  },
+  {
+    ref: "Gênesis 1:3",
+    enText: "And God said, 'Let there be light,' and there was light.",
+    ptText: "Então Deus disse: 'Que haja luz.' E houve luz.",
+    enFile: "audio3-en.mp3",
+    ptFile: "audio3-pt.mp3"
+  }
+];
+
 
     function renderSentences() {
       const container = document.getElementById("sentences-container");
