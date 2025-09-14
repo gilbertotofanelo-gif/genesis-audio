@@ -102,8 +102,7 @@
         <p class="en" id="en-${i}">${renderTextWithSpans(v.enText)}</p>
         <div class="controls">
           <button style="background-color:#4caf50; color:white;" onclick="toggleTranslation(${i})">🌐 Tradução</button>
-          <button onclick="togglePause(${i}, 'en')">⏸️ Pause</button>
-          <button onclick="playVerse(${i}, 'en')">▶️ Play</button>
+          <button id="toggle-en-${i}" onclick="togglePlayPause(${i}, 'en', this)">▶️ Play</button>
           <label for="speed-en-${i}" style="font-size:12px;">Velocidade:</label>
           <select id="speed-en-${i}" onchange="changeSpeed(${i}, 'en', this.value)">
             <option value="0.75">0.75x</option>
@@ -115,8 +114,7 @@
         <div id="pt-wrapper-${i}" style="display:none;">
           <p class="pt" id="pt-${i}">${renderTextWithSpans(v.ptText)}</p>
           <div class="controls">
-            <button style="background-color:#4caf50; color:white;" onclick="togglePause(${i}, 'pt')">⏸️ Pause</button>
-            <button style="background-color:#4caf50; color:white;" onclick="playVerse(${i}, 'pt')">▶️ Play</button>
+            <button id="toggle-pt-${i}" style="background-color:#4caf50; color:white;" onclick="togglePlayPause(${i}, 'pt', this)">▶️ Play</button>
             <label for="speed-pt-${i}" style="font-size:12px;">Velocidade:</label>
             <select id="speed-pt-${i}" onchange="changeSpeed(${i}, 'pt', this.value)">
               <option value="0.75">0.75x</option>
@@ -132,50 +130,37 @@
       container.appendChild(div);
     });
 
-    function playVerse(index, lang) {
-      if (currentAudio) {
-        cancelAnimationFrame(rafId);
-        currentAudio.pause();
-        currentAudio.currentTime = 0;
-      }
-
-      currentAudio = document.getElementById(`audio-${lang}-${index}`);
-      const textElement = document.getElementById(`${lang}-${index}`);
-      const words = textElement.querySelectorAll(".word");
-
-      words.forEach(w => w.classList.remove("highlight"));
+    function togglePlayPause(index, lang, btn) {
+      const audio = document.getElementById(`audio-${lang}-${index}`);
+      const words = document.getElementById(`${lang}-${index}`).querySelectorAll(".word");
 
       // clique em palavra → pula no áudio
       words.forEach((word, i) => {
         word.onclick = () => {
-          if (currentAudio.duration > 0) {
-            const newTime = (i / words.length) * currentAudio.duration;
-            currentAudio.currentTime = newTime;
-            if (currentAudio.paused) currentAudio.play();
+          if (audio.duration > 0) {
+            audio.currentTime = (i / words.length) * audio.duration;
+            if (audio.paused) audio.play();
           }
         };
       });
 
-      currentAudio.play();
-      syncWords(currentAudio, words);
-
-      currentAudio.onended = () => {
-        cancelAnimationFrame(rafId);
-        words.forEach(w => w.classList.remove("highlight"));
-      };
-    }
-
-    function togglePause(index, lang) {
-      const audio = document.getElementById(`audio-${lang}-${index}`);
-      const words = document.getElementById(`${lang}-${index}`).querySelectorAll(".word");
-
       if (audio.paused) {
         audio.play();
+        btn.textContent = "⏸️ Pause";
         syncWords(audio, words);
       } else {
         audio.pause();
+        btn.textContent = "▶️ Play";
         cancelAnimationFrame(rafId);
       }
+
+      audio.onended = () => {
+        cancelAnimationFrame(rafId);
+        words.forEach(w => w.classList.remove("highlight"));
+        btn.textContent = "▶️ Play";
+      };
+
+      currentAudio = audio;
     }
 
     function toggleTranslation(index) {
@@ -205,7 +190,7 @@
     document.getElementById("playAllEN").addEventListener("click", async () => {
       for (let i = 0; i < verses.length; i++) {
         await new Promise(resolve => {
-          playVerse(i, 'en');
+          togglePlayPause(i, 'en', document.getElementById(`toggle-en-${i}`));
           currentAudio.onended = resolve;
         });
       }
@@ -214,7 +199,7 @@
     document.getElementById("playAllPT").addEventListener("click", async () => {
       for (let i = 0; i < verses.length; i++) {
         await new Promise(resolve => {
-          playVerse(i, 'pt');
+          togglePlayPause(i, 'pt', document.getElementById(`toggle-pt-${i}`));
           currentAudio.onended = resolve;
         });
       }
