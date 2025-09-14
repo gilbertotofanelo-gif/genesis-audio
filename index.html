@@ -21,8 +21,8 @@
     }
     h2 { color: #333; }
     audio { width: 100%; margin-top: 0.5rem; }
-    .word { transition: color 0.2s ease; }
-    .highlight { color: red; }
+    .word { transition: color 0.2s ease; cursor: pointer; }
+    .highlight { color: red; font-weight: bold; }
     .controls button, .controls select {
       margin-right: 0.5rem;
       margin-top: 0.5rem;
@@ -145,6 +145,17 @@
 
       words.forEach(w => w.classList.remove("highlight"));
 
+      // clique em palavra → pula no áudio
+      words.forEach((word, i) => {
+        word.onclick = () => {
+          if (currentAudio.duration > 0) {
+            const newTime = (i / words.length) * currentAudio.duration;
+            currentAudio.currentTime = newTime;
+            if (currentAudio.paused) currentAudio.play();
+          }
+        };
+      });
+
       currentAudio.play();
       syncWords(currentAudio, words);
 
@@ -211,4 +222,3 @@
   </script>
 </body>
 </html>
-
