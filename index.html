@@ -23,7 +23,7 @@
     audio { width: 100%; margin-top: 0.5rem; }
     .word { transition: color 0.2s ease; }
     .highlight { color: red; }
-    .controls button {
+    .controls button, .controls select {
       margin-right: 0.5rem;
       margin-top: 0.5rem;
     }
@@ -56,7 +56,7 @@
   </h1>
   <div style="text-align: center; margin-top: 20px;">
     <button id="playAllEN" style="font-size:12px;">▶️ Todos/Inglês</button>
-    <button id="playAllPT" style="font-size:12px; background-color:#4caf50; color:white;">▶️ Todos1/Português</button>
+    <button id="playAllPT" style="font-size:12px; background-color:#4caf50; color:white;">▶️ Todos/Português</button>
   </div>
 
   <div id="container"></div>
@@ -104,12 +104,26 @@
           <button style="background-color:#4caf50; color:white;" onclick="toggleTranslation(${i})">🌐 Tradução</button>
           <button onclick="togglePause(${i}, 'en')">⏸️ Pause</button>
           <button onclick="playVerse(${i}, 'en')">▶️ Play</button>
+          <label for="speed-en-${i}" style="font-size:12px;">Velocidade:</label>
+          <select id="speed-en-${i}" onchange="changeSpeed(${i}, 'en', this.value)">
+            <option value="0.75">0.75x</option>
+            <option value="1" selected>1x</option>
+            <option value="1.25">1.25x</option>
+            <option value="1.5">1.5x</option>
+          </select>
         </div>
         <div id="pt-wrapper-${i}" style="display:none;">
           <p class="pt" id="pt-${i}">${renderTextWithSpans(v.ptText)}</p>
           <div class="controls">
             <button style="background-color:#4caf50; color:white;" onclick="togglePause(${i}, 'pt')">⏸️ Pause</button>
             <button style="background-color:#4caf50; color:white;" onclick="playVerse(${i}, 'pt')">▶️ Play</button>
+            <label for="speed-pt-${i}" style="font-size:12px;">Velocidade:</label>
+            <select id="speed-pt-${i}" onchange="changeSpeed(${i}, 'pt', this.value)">
+              <option value="0.75">0.75x</option>
+              <option value="1" selected>1x</option>
+              <option value="1.25">1.25x</option>
+              <option value="1.5">1.5x</option>
+            </select>
           </div>
         </div>
         <audio id="audio-en-${i}" src="${v.enFile}"></audio>
@@ -172,6 +186,11 @@
       step();
     }
 
+    function changeSpeed(index, lang, value) {
+      const audio = document.getElementById(`audio-${lang}-${index}`);
+      audio.playbackRate = parseFloat(value);
+    }
+
     document.getElementById("playAllEN").addEventListener("click", async () => {
       for (let i = 0; i < verses.length; i++) {
         await new Promise(resolve => {
@@ -192,3 +211,4 @@
   </script>
 </body>
 </html>
+
