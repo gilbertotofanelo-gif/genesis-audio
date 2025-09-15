@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Audio de Gênesis</title>
+  <title>Áudio de Gênesis</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -12,128 +12,98 @@
       max-width: 700px;
       margin: auto;
     }
-    .verse {
-      background: #fff;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      padding: 1rem;
-      margin-bottom: 1.5rem;
+    p {
+      font-size: 1.2rem;
+      line-height: 1.6;
     }
-    h2 { color: #333; }
-    audio { width: 100%; margin-top: 0.5rem; }
-    .word { transition: color 0.2s ease; cursor: pointer; }
-    .highlight { color: red; font-weight: bold; }
-    .controls button, .controls select {
-      margin-right: 0.5rem;
-      margin-top: 0.5rem;
-    }
-    .global-controls {
-      text-align: center;
-      margin-bottom: 1.5rem;
-    }
-    .global-controls button {
-      margin: 0 0.5rem;
-      padding: 0.5rem 1rem;
-      border: none;
-      border-radius: 5px;
+    .word {
       cursor: pointer;
-      font-size: 1rem;
-      background-color: #673ab7;
-      color: white;
+      padding: 2px;
     }
-    .global-controls button:hover {
-      background-color: #5e35b1;
-    }
-    .ref-title {
-      font-size: 12px;
+    .highlight {
       color: red;
     }
-    /* NOVO: classe para negrito do texto inteiro */
     .bold-paragraph {
       font-weight: bold;
+    }
+    button {
+      margin: 4px;
+      padding: 6px 12px;
+      font-size: 1rem;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <h1 style="font-size: 18px; text-align: center; margin-bottom: 1rem;">
-    📖 Gênesis — Inglês e Português
-  </h1>
-  <div style="text-align: center; margin-top: 20px;">
-    <button id="playAllEN" style="font-size:12px;">▶️ Todos/Inglês</button>
-    <button id="playAllPT" style="font-size:12px; background-color:#4caf50; color:white;">▶️ Todos/Português</button>
+  <h1>Áudio de Gênesis</h1>
+  <div id="controls">
+    <button id="playAllEN">▶️ Todos EN</button>
+    <button id="playAllPT">▶️ Todos PT</button>
   </div>
-
-  <div id="container"></div>
+  <div id="content"></div>
 
   <script>
     const verses = [
       {
-        ref: "Gênesis 1:1",
-        enText: "In the beginning God created the heavens and the earth.",
-        ptText: "No princípio Deus criou os céus e a terra.",
-        enFile: "genesis-1-1-en.mp3",
-        ptFile: "genesis-1-1-pt.mp3"
+        en: "In the beginning God created the heavens and the earth.",
+        pt: "No princípio Deus criou os céus e a terra."
       },
       {
-        ref: "Gênesis 1:2",
-        enText: "Now the earth was formless and desolate, and there was darkness upon the surface of the watery deep, and God’s active force was moving about over the surface of the waters.",
-        ptText: "A terra era vazia e deserta, e havia escuridão sobre as águas profundas; e a força ativa de Deus movia-se sobre as águas.",
-        enFile: "genesis-1-2-en.mp3",
-        ptFile: "genesis-1-2-pt.mp3"
+        en: "Now the earth was formless and empty, darkness was over the surface of the deep.",
+        pt: "A terra era sem forma e vazia, havia trevas sobre a face do abismo."
       },
       {
-        ref: "Gênesis 1:3",
-        enText: "And God said, 'Let there be light,' and there was light.",
-        ptText: "Então Deus disse: 'Que haja luz.' E houve luz.",
-        enFile: "genesis-1-3-en.mp3",
-        ptFile: "genesis-1-3-pt.mp3"
+        en: "And the Spirit of God was hovering over the waters.",
+        pt: "E o Espírito de Deus pairava sobre as águas."
       }
     ];
 
-    const container = document.getElementById("container");
+    const contentDiv = document.getElementById("content");
+
+    // renderiza versículos
+    verses.forEach((verse, index) => {
+      ["en", "pt"].forEach(lang => {
+        const paragraph = document.createElement("p");
+        paragraph.id = `${lang}-${index}`;
+        paragraph.innerHTML = verse[lang]
+          .split(" ")
+          .map(word => `<span class="word">${word}</span>`)
+          .join(" ");
+        contentDiv.appendChild(paragraph);
+
+        const audio = document.createElement("audio");
+        audio.id = `audio-${lang}-${index}`;
+        audio.src = `audios/${lang}-${index}.mp3`; // coloque seus áudios aqui
+        contentDiv.appendChild(audio);
+
+        const btn = document.createElement("button");
+        btn.id = `toggle-${lang}-${index}`;
+        btn.textContent = "▶️ Play";
+        btn.onclick = () => togglePlayPause(index, lang, btn);
+        contentDiv.appendChild(btn);
+      });
+    });
+
     let currentAudio = null;
-    let rafId = null;
+    let rafId;
     let resolveNext = null; // usado no modo "Todos"
 
-    function renderTextWithSpans(text) {
-      return text.split(" ").map(w => `<span class="word">${w}</span>`).join(" ");
-    }
+    function syncWords(audio, words) {
+      function step() {
+        const currentTime = audio.currentTime;
+        const duration = audio.duration;
+        const wordIndex = Math.floor((currentTime / duration) * words.length);
 
-    verses.forEach((v, i) => {
-      const div = document.createElement("div");
-      div.className = "verse";
-      div.innerHTML = `
-        <h2 class="ref-title">${v.ref}</h2>
-        <p class="en" id="en-${i}">${renderTextWithSpans(v.enText)}</p>
-        <div class="controls">
-          <button style="background-color:#4caf50; color:white;" onclick="toggleTranslation(${i})">🌐 Tradução</button>
-          <label for="speed-en-${i}" style="font-size:12px;"></label>
-          <select id="speed-en-${i}" onchange="changeSpeed(${i}, 'en', this.value)">
-            <option value="0.75">0.75x</option>
-            <option value="1" selected>1x</option>
-            <option value="1.25">1.25x</option>
-            <option value="1.5">1.5x</option>
-          </select>
-          <button id="toggle-en-${i}" onclick="togglePlayPause(${i}, 'en', this)">▶️ Play</button>
-        </div>
-        <div id="pt-wrapper-${i}" style="display:none;">
-          <p class="pt" id="pt-${i}">${renderTextWithSpans(v.ptText)}</p>
-          <div class="controls">
-            <label for="speed-pt-${i}" style="font-size:12px;"></label>
-            <select id="speed-pt-${i}" onchange="changeSpeed(${i}, 'pt', this.value)">
-              <option value="0.75">0.75x</option>
-              <option value="1" selected>1x</option>
-              <option value="1.25">1.25x</option>
-              <option value="1.5">1.5x</option>
-            </select>
-            <button id="toggle-pt-${i}" style="background-color:#4caf50; color:white;" onclick="togglePlayPause(${i}, 'pt', this)">▶️ Play</button>
-          </div>
-        </div>
-        <audio id="audio-en-${i}" src="${v.enFile}"></audio>
-        <audio id="audio-pt-${i}" src="${v.ptFile}"></audio>
-      `;
-      container.appendChild(div);
-    });
+        words.forEach((w, i) => {
+          w.classList.toggle("highlight", i === wordIndex);
+        });
+
+        if (!audio.paused) {
+          rafId = requestAnimationFrame(step);
+        }
+      }
+      step();
+    }
 
     function togglePlayPause(index, lang, btn) {
       const audio = document.getElementById(`audio-${lang}-${index}`);
@@ -153,7 +123,7 @@
       if (audio.paused) {
         audio.play();
         btn.textContent = "⏸️ Pause";
-        paragraph.classList.add("bold-paragraph"); // negrito no texto inteiro
+        paragraph.classList.add("bold-paragraph");
         syncWords(audio, words);
       } else {
         audio.pause();
@@ -164,56 +134,45 @@
       audio.onended = () => {
         cancelAnimationFrame(rafId);
         words.forEach(w => w.classList.remove("highlight"));
-        paragraph.classList.remove("bold-paragraph"); // 🔹 volta ao normal
+        paragraph.classList.remove("bold-paragraph");
         btn.textContent = "▶️ Play";
 
-        // 🔹 se estiver no modo "Todos", avança após limpar negrito
+        // se estiver no modo "Todos", avança
         if (typeof resolveNext === "function") {
           resolveNext();
+
+          // rola para o próximo parágrafo
+          setTimeout(() => {
+            const nextParagraph = document.getElementById(`${lang}-${index + 1}`);
+            if (nextParagraph) {
+              nextParagraph.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+              });
+            }
+          }, 300);
         }
       };
 
       currentAudio = audio;
     }
 
-    function toggleTranslation(index) {
-      const wrapper = document.getElementById(`pt-wrapper-${index}`);
-      wrapper.style.display = wrapper.style.display === "none" ? "block" : "none";
-    }
-
-    function syncWords(audio, words) {
-      function step() {
-        if (!audio.paused && audio.duration > 0) {
-          const progress = audio.currentTime / audio.duration;
-          const wordIndex = Math.floor(progress * words.length);
-          words.forEach((w, i) => {
-            w.classList.toggle("highlight", i === wordIndex);
-          });
-        }
-        rafId = requestAnimationFrame(step);
-      }
-      step();
-    }
-
-    function changeSpeed(index, lang, value) {
-      const audio = document.getElementById(`audio-${lang}-${index}`);
-      audio.playbackRate = parseFloat(value);
-    }
-
+    // play todos em inglês
     document.getElementById("playAllEN").addEventListener("click", async () => {
       for (let i = 0; i < verses.length; i++) {
         await new Promise(resolve => {
-          resolveNext = resolve; // passa função para o onended
-          togglePlayPause(i, 'en', document.getElementById(`toggle-en-${i}`));
+          resolveNext = resolve;
+          togglePlayPause(i, "en", document.getElementById(`toggle-en-${i}`));
         });
       }
     });
 
+    // play todos em português
     document.getElementById("playAllPT").addEventListener("click", async () => {
       for (let i = 0; i < verses.length; i++) {
         await new Promise(resolve => {
           resolveNext = resolve;
-          togglePlayPause(i, 'pt', document.getElementById(`toggle-pt-${i}`));
+          togglePlayPause(i, "pt", document.getElementById(`toggle-pt-${i}`));
         });
       }
     });
