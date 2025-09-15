@@ -18,6 +18,8 @@
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       padding: 1rem;
       margin-bottom: 1.5rem;
+      /* Adiciona margem de scroll para evitar que o texto fique atrás da barra fixa */
+      scroll-margin-top: 80px;
     }
     h2 { color: #333; }
     audio { width: 100%; margin-top: 0.5rem; }
@@ -34,7 +36,7 @@
       padding: 1rem;
       border-radius: 10px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      position: sticky;  /* FIXAÇÃO NO TOPO */
+      position: sticky;
       top: 0;
       z-index: 999;
     }
@@ -68,18 +70,17 @@
   </h1>
   
   <div class="global-controls" style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-  <button id="playAllEN" style="font-size:12px; padding:0.3rem 0.8rem;">▶️ EN</button>
-  <button id="playAllPT" style="font-size:12px; padding:0.3rem 0.8rem; background-color:#4caf50; color:white;">▶️ PT</button>
+    <button id="playAllEN" style="font-size:12px; padding:0.3rem 0.8rem;">▶️ EN</button>
+    <button id="playAllPT" style="font-size:12px; padding:0.3rem 0.8rem; background-color:#4caf50; color:white;">▶️ PT</button>
 
-  <label for="globalSpeed" style="margin-left:0.5rem;"></label>
-  <select id="globalSpeed" style="font-size:12px; padding:0.2rem 0.5rem;">
-    <option value="0.75">0.75x</option>
-    <option value="1" selected>1x</option>
-    <option value="1.25">1.25x</option>
-    <option value="1.5">1.5x</option>
-  </select>
-</div>
-
+    <label for="globalSpeed" style="margin-left:0.5rem;"></label>
+    <select id="globalSpeed" style="font-size:12px; padding:0.2rem 0.5rem;">
+      <option value="0.75">0.75x</option>
+      <option value="1" selected>1x</option>
+      <option value="1.25">1.25x</option>
+      <option value="1.5">1.5x</option>
+    </select>
+  </div>
 
   <div id="container"></div>
 
@@ -134,6 +135,7 @@
     verses.forEach((v, i) => {
       const div = document.createElement("div");
       div.className = "verse";
+      div.id = `verse-${i}`; // Adiciona ID para facilitar a navegação
       div.innerHTML = `
         <h2 class="ref-title">${v.ref}</h2>
         <p class="en" id="en-${i}">${renderTextWithSpans(v.enText)}</p>
@@ -201,9 +203,9 @@
         if (typeof resolveNext === "function") {
           resolveNext();
           setTimeout(() => {
-            const nextParagraph = document.getElementById(`${lang}-${index + 1}`);
-            if (nextParagraph) {
-              nextParagraph.scrollIntoView({ behavior: "smooth", block: "start" });
+            const nextVerse = document.getElementById(`verse-${index + 1}`);
+            if (nextVerse) {
+              nextVerse.scrollIntoView({ behavior: "smooth", block: "start" });
             }
           }, 300);
         }
