@@ -67,20 +67,19 @@
     📖 Gênesis — Inglês e Português
   </h1>
   
-  <div class="global-controls">
-    
-<button id="playAllEN" style="font-size:12px; padding:0.3rem 0.8rem;">▶️ Todos EN</button>
-<button id="playAllPT" style="font-size:12px; padding:0.3rem 0.8rem; background-color:#4caf50; color:white;">▶️ Todos PT</button>
+  <div class="global-controls" style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+  <button id="playAllEN" style="font-size:12px; padding:0.3rem 0.8rem;">▶️ Todos EN</button>
+  <button id="playAllPT" style="font-size:12px; padding:0.3rem 0.8rem; background-color:#4caf50; color:white;">▶️ Todos PT</button>
 
-    
-    <label for="globalSpeed"></label>
-    <select id="globalSpeed">
-      <option value="0.75">0.75x</option>
-      <option value="1" selected>1x</option>
-      <option value="1.25">1.25x</option>
-      <option value="1.5">1.5x</option>
-    </select>
-  </div>
+  <label for="globalSpeed" style="margin-left:0.5rem;">Velocidade:</label>
+  <select id="globalSpeed" style="font-size:12px; padding:0.2rem 0.5rem;">
+    <option value="0.75">0.75x</option>
+    <option value="1" selected>1x</option>
+    <option value="1.25">1.25x</option>
+    <option value="1.5">1.5x</option>
+  </select>
+</div>
+
 
   <div id="container"></div>
 
