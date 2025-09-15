@@ -93,6 +93,7 @@
     const container = document.getElementById("container");
     let currentAudio = null;
     let rafId = null;
+    let resolveNext = null; // usado no modo "Todos"
 
     function renderTextWithSpans(text) {
       return text.split(" ").map(w => `<span class="word">${w}</span>`).join(" ");
@@ -163,8 +164,13 @@
       audio.onended = () => {
         cancelAnimationFrame(rafId);
         words.forEach(w => w.classList.remove("highlight"));
-        paragraph.classList.remove("bold-paragraph"); // remove negrito ao terminar
+        paragraph.classList.remove("bold-paragraph"); // 🔹 volta ao normal
         btn.textContent = "▶️ Play";
+
+        // 🔹 se estiver no modo "Todos", avança após limpar negrito
+        if (typeof resolveNext === "function") {
+          resolveNext();
+        }
       };
 
       currentAudio = audio;
@@ -197,8 +203,8 @@
     document.getElementById("playAllEN").addEventListener("click", async () => {
       for (let i = 0; i < verses.length; i++) {
         await new Promise(resolve => {
+          resolveNext = resolve; // passa função para o onended
           togglePlayPause(i, 'en', document.getElementById(`toggle-en-${i}`));
-          currentAudio.onended = resolve;
         });
       }
     });
@@ -206,8 +212,8 @@
     document.getElementById("playAllPT").addEventListener("click", async () => {
       for (let i = 0; i < verses.length; i++) {
         await new Promise(resolve => {
+          resolveNext = resolve;
           togglePlayPause(i, 'pt', document.getElementById(`toggle-pt-${i}`));
-          currentAudio.onended = resolve;
         });
       }
     });
