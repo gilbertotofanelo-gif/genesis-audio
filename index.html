@@ -135,46 +135,58 @@
       container.appendChild(div);
     });
 
-    function togglePlayPause(index, lang, btn) {
-      const audio = document.getElementById(`audio-${lang}-${index}`);
-      const paragraph = document.getElementById(`${lang}-${index}`);
-      const words = paragraph.querySelectorAll(".word");
+   function togglePlayPause(index, lang, btn) {
+  const audio = document.getElementById(`audio-${lang}-${index}`);
+  const paragraph = document.getElementById(`${lang}-${index}`);
+  const words = paragraph.querySelectorAll(".word");
 
-      // clique em palavra → pula no áudio
-      words.forEach((word, i) => {
-        word.onclick = () => {
-          if (audio.duration > 0) {
-            audio.currentTime = (i / words.length) * audio.duration;
-            if (audio.paused) audio.play();
-          }
-        };
-      });
-
-      if (audio.paused) {
-        audio.play();
-        btn.textContent = "⏸️ Pause";
-        paragraph.classList.add("bold-paragraph"); // negrito no texto inteiro
-        syncWords(audio, words);
-      } else {
-        audio.pause();
-        btn.textContent = "▶️ Play";
-        cancelAnimationFrame(rafId);
+  // clique em palavra → pula no áudio
+  words.forEach((word, i) => {
+    word.onclick = () => {
+      if (audio.duration > 0) {
+        audio.currentTime = (i / words.length) * audio.duration;
+        if (audio.paused) audio.play();
       }
+    };
+  });
 
-      audio.onended = () => {
-        cancelAnimationFrame(rafId);
-        words.forEach(w => w.classList.remove("highlight"));
-        paragraph.classList.remove("bold-paragraph"); // 🔹 volta ao normal
-        btn.textContent = "▶️ Play";
+  if (audio.paused) {
+    audio.play();
+    btn.textContent = "⏸️ Pause";
+    paragraph.classList.add("bold-paragraph"); // negrito no texto inteiro
+    syncWords(audio, words);
+  } else {
+    audio.pause();
+    btn.textContent = "▶️ Play";
+    cancelAnimationFrame(rafId);
+  }
 
-        // 🔹 se estiver no modo "Todos", avança após limpar negrito
-        if (typeof resolveNext === "function") {
-          resolveNext();
+  audio.onended = () => {
+    cancelAnimationFrame(rafId);
+    words.forEach(w => w.classList.remove("highlight"));
+    paragraph.classList.remove("bold-paragraph"); // volta ao normal
+    btn.textContent = "▶️ Play";
+
+    // 🔹 se estiver no modo "Todos", avança após limpar negrito
+    if (typeof resolveNext === "function") {
+      resolveNext();
+
+      // 🔹 rola para o próximo parágrafo após um pequeno delay
+      setTimeout(() => {
+        const nextParagraph = document.getElementById(`${lang}-${index + 1}`);
+        if (nextParagraph) {
+          nextParagraph.scrollIntoView({
+            behavior: "smooth",
+            block: "start"  // garante que fica no topo
+          });
         }
-      };
-
-      currentAudio = audio;
+      }, 300);
     }
+  };
+
+  currentAudio = audio;
+}
+
 
     function toggleTranslation(index) {
       const wrapper = document.getElementById(`pt-wrapper-${index}`);
