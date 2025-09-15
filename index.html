@@ -102,20 +102,18 @@
         <p class="en" id="en-${i}">${renderTextWithSpans(v.enText)}</p>
         <div class="controls">
           <button style="background-color:#4caf50; color:white;" onclick="toggleTranslation(${i})">🌐 Tradução</button>
-          <button id="toggle-en-${i}" onclick="togglePlayPause(${i}, 'en', this)">▶️ Play</button> 
           <label for="speed-en-${i}" style="font-size:12px;"></label>
           <select id="speed-en-${i}" onchange="changeSpeed(${i}, 'en', this.value)">
             <option value="0.75">0.75x</option>
             <option value="1" selected>1x</option>
             <option value="1.25">1.25x</option>
             <option value="1.5">1.5x</option>
-           
           </select>
+          <button id="toggle-en-${i}" onclick="togglePlayPause(${i}, 'en', this)">▶️ Play</button>
         </div>
         <div id="pt-wrapper-${i}" style="display:none;">
           <p class="pt" id="pt-${i}">${renderTextWithSpans(v.ptText)}</p>
           <div class="controls">
-            <button id="toggle-pt-${i}" style="background-color:#4caf50; color:white;" onclick="togglePlayPause(${i}, 'pt', this)">▶️ Play</button>
             <label for="speed-pt-${i}" style="font-size:12px;"></label>
             <select id="speed-pt-${i}" onchange="changeSpeed(${i}, 'pt', this.value)">
               <option value="0.75">0.75x</option>
@@ -123,6 +121,7 @@
               <option value="1.25">1.25x</option>
               <option value="1.5">1.5x</option>
             </select>
+            <button id="toggle-pt-${i}" style="background-color:#4caf50; color:white;" onclick="togglePlayPause(${i}, 'pt', this)">▶️ Play</button>
           </div>
         </div>
         <audio id="audio-en-${i}" src="${v.enFile}"></audio>
