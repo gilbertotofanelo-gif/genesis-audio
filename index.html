@@ -59,16 +59,12 @@
   <h1 style="font-size: 18px; text-align: center; margin-bottom: 1rem;">
     📖 Gênesis — Inglês e Português
   </h1>
+  
   <div class="global-controls">
     <button id="playAllEN">▶️ Todos/Inglês</button>
-    <select id="globalSpeedEN">
-      <option value="0.75">0.75x</option>
-      <option value="1" selected>1x</option>
-      <option value="1.25">1.25x</option>
-      <option value="1.5">1.5x</option>
-    </select>
-    <button id="playAllPT" style="background-color:#4caf50;">▶️ Todos/Português</button>
-    <select id="globalSpeedPT">
+    <button id="playAllPT" style="background-color:#4caf50; color:white;">▶️ Todos/Português</button>
+    <label for="globalSpeed">Velocidade:</label>
+    <select id="globalSpeed">
       <option value="0.75">0.75x</option>
       <option value="1" selected>1x</option>
       <option value="1.25">1.25x</option>
@@ -120,9 +116,7 @@
     const container = document.getElementById("container");
     let currentAudio = null;
     let rafId = null;
-    let resolveNext = null;
-    let globalSpeedEN = 1;
-    let globalSpeedPT = 1;
+    let resolveNext = null; // usado no modo "Todos"
 
     function renderTextWithSpans(text) {
       return text.split(" ").map(w => `<span class="word">${w}</span>`).join(" ");
@@ -136,6 +130,7 @@
         <p class="en" id="en-${i}">${renderTextWithSpans(v.enText)}</p>
         <div class="controls">
           <button style="background-color:#4caf50; color:white;" onclick="toggleTranslation(${i})">🌐 Tradução</button>
+          <label for="speed-en-${i}" style="font-size:12px;"></label>
           <select id="speed-en-${i}" onchange="changeSpeed(${i}, 'en', this.value)">
             <option value="0.75">0.75x</option>
             <option value="1" selected>1x</option>
@@ -147,6 +142,7 @@
         <div id="pt-wrapper-${i}" style="display:none;">
           <p class="pt" id="pt-${i}">${renderTextWithSpans(v.ptText)}</p>
           <div class="controls">
+            <label for="speed-pt-${i}" style="font-size:12px;"></label>
             <select id="speed-pt-${i}" onchange="changeSpeed(${i}, 'pt', this.value)">
               <option value="0.75">0.75x</option>
               <option value="1" selected>1x</option>
@@ -175,10 +171,6 @@
           }
         };
       });
-
-      // aplica a velocidade global se for modo Todos
-      if (lang === 'en') audio.playbackRate = globalSpeedEN;
-      if (lang === 'pt') audio.playbackRate = globalSpeedPT;
 
       if (audio.paused) {
         audio.play();
@@ -235,13 +227,13 @@
       audio.playbackRate = parseFloat(value);
     }
 
-    // controles globais
-    document.getElementById("globalSpeedEN").addEventListener("change", e => {
-      globalSpeedEN = parseFloat(e.target.value);
-    });
-
-    document.getElementById("globalSpeedPT").addEventListener("change", e => {
-      globalSpeedPT = parseFloat(e.target.value);
+    const globalSpeedSelect = document.getElementById("globalSpeed");
+    globalSpeedSelect.addEventListener("change", () => {
+      const speed = parseFloat(globalSpeedSelect.value);
+      verses.forEach((_, i) => {
+        document.getElementById(`audio-en-${i}`).playbackRate = speed;
+        document.getElementById(`audio-pt-${i}`).playbackRate = speed;
+      });
     });
 
     document.getElementById("playAllEN").addEventListener("click", async () => {
@@ -254,12 +246,22 @@
     });
 
     document.getElementById("playAllPT").addEventListener("click", async () => {
+      // Mostra todos os textos em português
+      verses.forEach((_, i) => {
+        document.getElementById(`pt-wrapper-${i}`).style.display = "block";
+      });
+
       for (let i = 0; i < verses.length; i++) {
         await new Promise(resolve => {
           resolveNext = resolve;
           togglePlayPause(i, 'pt', document.getElementById(`toggle-pt-${i}`));
         });
       }
+
+      // Oculta novamente após finalizar
+      verses.forEach((_, i) => {
+        document.getElementById(`pt-wrapper-${i}`).style.display = "none";
+      });
     });
   </script>
 </body>
