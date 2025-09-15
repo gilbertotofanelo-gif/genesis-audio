@@ -48,6 +48,10 @@
       font-size: 12px;
       color: red;
     }
+    /* NOVO: classe para negrito do texto inteiro */
+    .bold-paragraph {
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -132,7 +136,8 @@
 
     function togglePlayPause(index, lang, btn) {
       const audio = document.getElementById(`audio-${lang}-${index}`);
-      const words = document.getElementById(`${lang}-${index}`).querySelectorAll(".word");
+      const paragraph = document.getElementById(`${lang}-${index}`);
+      const words = paragraph.querySelectorAll(".word");
 
       // clique em palavra → pula no áudio
       words.forEach((word, i) => {
@@ -147,6 +152,7 @@
       if (audio.paused) {
         audio.play();
         btn.textContent = "⏸️ Pause";
+        paragraph.classList.add("bold-paragraph"); // negrito no texto inteiro
         syncWords(audio, words);
       } else {
         audio.pause();
@@ -157,6 +163,7 @@
       audio.onended = () => {
         cancelAnimationFrame(rafId);
         words.forEach(w => w.classList.remove("highlight"));
+        paragraph.classList.remove("bold-paragraph"); // remove negrito ao terminar
         btn.textContent = "▶️ Play";
       };
 
