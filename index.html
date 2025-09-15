@@ -30,6 +30,13 @@
     .global-controls {
       text-align: center;
       margin-bottom: 1.5rem;
+      background-color: #fff;
+      padding: 1rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      position: sticky;  /* FIXAÇÃO NO TOPO */
+      top: 0;
+      z-index: 999;
     }
     .global-controls button, .global-controls select {
       margin: 0 0.5rem;
@@ -116,7 +123,7 @@
     const container = document.getElementById("container");
     let currentAudio = null;
     let rafId = null;
-    let resolveNext = null; // usado no modo "Todos"
+    let resolveNext = null;
 
     function renderTextWithSpans(text) {
       return text.split(" ").map(w => `<span class="word">${w}</span>`).join(" ");
@@ -246,7 +253,6 @@
     });
 
     document.getElementById("playAllPT").addEventListener("click", async () => {
-      // Mostra todos os textos em português
       verses.forEach((_, i) => {
         document.getElementById(`pt-wrapper-${i}`).style.display = "block";
       });
@@ -258,7 +264,6 @@
         });
       }
 
-      // Oculta novamente após finalizar
       verses.forEach((_, i) => {
         document.getElementById(`pt-wrapper-${i}`).style.display = "none";
       });
