@@ -198,8 +198,10 @@
         return;
       }
 
-      // Parar qualquer áudio atual
-      stopAllAudio();
+      // Parar qualquer áudio atual apenas se não estiver em modo de reprodução sequencial
+      if (!isPlayingAll) {
+        stopAllAudio();
+      }
 
       words.forEach((word, i) => {
         word.onclick = () => {
@@ -314,9 +316,13 @@
       for (let i = 0; i < verses.length; i++) {
         await new Promise(resolve => {
           resolveNext = resolve;
-          togglePlayPause(i, 'en', document.getElementById(`toggle-en-${i}`));
+          // Usamos um timeout para garantir que o áudio anterior tenha terminado completamente
+          setTimeout(() => {
+            togglePlayPause(i, 'en', document.getElementById(`toggle-en-${i}`));
+          }, 100);
         });
       }
+      isPlayingAll = false;
     });
 
     document.getElementById("playAllPT").addEventListener("click", async () => {
@@ -331,7 +337,10 @@
       for (let i = 0; i < verses.length; i++) {
         await new Promise(resolve => {
           resolveNext = resolve;
-          togglePlayPause(i, 'pt', document.getElementById(`toggle-pt-${i}`));
+          // Usamos um timeout para garantir que o áudio anterior tenha terminado completamente
+          setTimeout(() => {
+            togglePlayPause(i, 'pt', document.getElementById(`toggle-pt-${i}`));
+          }, 100);
         });
       }
 
@@ -339,6 +348,8 @@
       verses.forEach((_, i) => {
         document.getElementById(`pt-wrapper-${i}`).style.display = "none";
       });
+      
+      isPlayingAll = false;
     });
 
     document.getElementById("stopAll").addEventListener("click", stopAllAudio);
