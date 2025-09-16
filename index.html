@@ -18,7 +18,6 @@
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       padding: 1rem;
       margin-bottom: 1.5rem;
-      /* Adiciona margem de scroll para evitar que o texto fique atrás da barra fixa */
       scroll-margin-top: 80px;
     }
     h2 { color: #333; }
@@ -49,11 +48,19 @@
       font-size: 1rem;
     }
     .global-controls button {
-      background-color: #673ab7;
       color: white;
     }
+    #playAllEN {
+      background-color: #673ab7;
+    }
+    #playAllPT {
+      background-color: #4caf50;
+    }
+    #stopAll {
+      background-color: #f44336;
+    }
     .global-controls button:hover {
-      background-color: #5e35b1;
+      opacity: 0.9;
     }
     .ref-title {
       font-size: 12px;
@@ -62,6 +69,9 @@
     .bold-paragraph {
       font-weight: bold;
     }
+    .playing {
+      background-color: #e0e0e0 !important;
+    }
   </style>
 </head>
 <body>
@@ -69,11 +79,12 @@
     📖 Gênesis — Inglês e Português
   </h1>
   
-  <div class="global-controls" style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+  <div class="global-controls" style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; justify-content: center;">
     <button id="playAllEN" style="font-size:12px; padding:0.3rem 0.8rem;">▶️ EN</button>
-    <button id="playAllPT" style="font-size:12px; padding:0.3rem 0.8rem; background-color:#4caf50; color:white;">▶️ PT</button>
+    <button id="playAllPT" style="font-size:12px; padding:0.3rem 0.8rem;">▶️ PT</button>
+    <button id="stopAll" style="font-size:12px; padding:0.3rem 0.8rem;">⏹️ Stop</button>
 
-    <label for="globalSpeed" style="margin-left:0.5rem;"></label>
+    <label for="globalSpeed" style="margin-left:0.5rem;">Velocidade:</label>
     <select id="globalSpeed" style="font-size:12px; padding:0.2rem 0.5rem;">
       <option value="0.75">0.75x</option>
       <option value="1" selected>1x</option>
@@ -127,6 +138,9 @@
     let currentAudio = null;
     let rafId = null;
     let resolveNext = null;
+    let isPlayingAll = false;
+    let currentPlayingIndex = -1;
+    let currentPlayingLang = '';
 
     function renderTextWithSpans(text) {
       return text.split(" ").map(w => `<span class="word">${w}</span>`).join(" ");
@@ -135,13 +149,13 @@
     verses.forEach((v, i) => {
       const div = document.createElement("div");
       div.className = "verse";
-      div.id = `verse-${i}`; // Adiciona ID para facilitar a navegação
+      div.id = `verse-${i}`;
       div.innerHTML = `
         <h2 class="ref-title">${v.ref}</h2>
         <p class="en" id="en-${i}">${renderTextWithSpans(v.enText)}</p>
         <div class="controls">
           <button style="background-color:#4caf50; color:white;" onclick="toggleTranslation(${i})">🌐 Tradução</button>
-          <label for="speed-en-${i}" style="font-size:12px;"></label>
+          <label for="speed-en-${i}" style="font-size:12px;">Velocidade:</label>
           <select id="speed-en-${i}" onchange="changeSpeed(${i}, 'en', this.value)">
             <option value="0.75">0.75x</option>
             <option value="1" selected>1x</option>
@@ -153,7 +167,7 @@
         <div id="pt-wrapper-${i}" style="display:none;">
           <p class="pt" id="pt-${i}">${renderTextWithSpans(v.ptText)}</p>
           <div class="controls">
-            <label for="speed-pt-${i}" style="font-size:12px;"></label>
+            <label for="speed-pt-${i}" style="font-size:12px;">Velocidade:</label>
             <select id="speed-pt-${i}" onchange="changeSpeed(${i}, 'pt', this.value)">
               <option value="0.75">0.75x</option>
               <option value="1" selected>1x</option>
@@ -173,6 +187,19 @@
       const audio = document.getElementById(`audio-${lang}-${index}`);
       const paragraph = document.getElementById(`${lang}-${index}`);
       const words = paragraph.querySelectorAll(".word");
+      
+      // Se já está tocando, pausar
+      if (!audio.paused) {
+        audio.pause();
+        btn.textContent = "▶️ Play";
+        paragraph.classList.remove("bold-paragraph");
+        cancelAnimationFrame(rafId);
+        isPlayingAll = false;
+        return;
+      }
+
+      // Parar qualquer áudio atual
+      stopAllAudio();
 
       words.forEach((word, i) => {
         word.onclick = () => {
@@ -183,24 +210,23 @@
         };
       });
 
-      if (audio.paused) {
-        audio.play();
-        btn.textContent = "⏸️ Pause";
-        paragraph.classList.add("bold-paragraph");
-        syncWords(audio, words);
-      } else {
-        audio.pause();
-        btn.textContent = "▶️ Play";
-        cancelAnimationFrame(rafId);
-      }
+      audio.play();
+      btn.textContent = "⏸️ Pause";
+      paragraph.classList.add("bold-paragraph");
+      syncWords(audio, words);
+      
+      currentPlayingIndex = index;
+      currentPlayingLang = lang;
 
       audio.onended = () => {
         cancelAnimationFrame(rafId);
         words.forEach(w => w.classList.remove("highlight"));
         paragraph.classList.remove("bold-paragraph");
         btn.textContent = "▶️ Play";
+        currentPlayingIndex = -1;
+        currentPlayingLang = '';
 
-        if (typeof resolveNext === "function") {
+        if (isPlayingAll && typeof resolveNext === "function") {
           resolveNext();
           setTimeout(() => {
             const nextVerse = document.getElementById(`verse-${index + 1}`);
@@ -212,6 +238,40 @@
       };
 
       currentAudio = audio;
+    }
+
+    function stopAllAudio() {
+      // Parar todos os áudios
+      verses.forEach((_, i) => {
+        const enAudio = document.getElementById(`audio-en-${i}`);
+        const ptAudio = document.getElementById(`audio-pt-${i}`);
+        
+        if (!enAudio.paused) {
+          enAudio.pause();
+          enAudio.currentTime = 0;
+          document.getElementById(`toggle-en-${i}`).textContent = "▶️ Play";
+          document.getElementById(`en-${i}`).classList.remove("bold-paragraph");
+        }
+        
+        if (!ptAudio.paused) {
+          ptAudio.pause();
+          ptAudio.currentTime = 0;
+          document.getElementById(`toggle-pt-${i}`).textContent = "▶️ Play";
+          document.getElementById(`pt-${i}`).classList.remove("bold-paragraph");
+        }
+        
+        // Remover highlights
+        const enWords = document.getElementById(`en-${i}`).querySelectorAll(".word");
+        const ptWords = document.getElementById(`pt-${i}`).querySelectorAll(".word");
+        
+        enWords.forEach(w => w.classList.remove("highlight"));
+        ptWords.forEach(w => w.classList.remove("highlight"));
+      });
+      
+      cancelAnimationFrame(rafId);
+      isPlayingAll = false;
+      currentPlayingIndex = -1;
+      currentPlayingLang = '';
     }
 
     function toggleTranslation(index) {
@@ -248,6 +308,9 @@
     });
 
     document.getElementById("playAllEN").addEventListener("click", async () => {
+      stopAllAudio();
+      isPlayingAll = true;
+      
       for (let i = 0; i < verses.length; i++) {
         await new Promise(resolve => {
           resolveNext = resolve;
@@ -257,6 +320,10 @@
     });
 
     document.getElementById("playAllPT").addEventListener("click", async () => {
+      stopAllAudio();
+      isPlayingAll = true;
+      
+      // Mostrar todas as traduções
       verses.forEach((_, i) => {
         document.getElementById(`pt-wrapper-${i}`).style.display = "block";
       });
@@ -268,10 +335,13 @@
         });
       }
 
+      // Esconder as traduções novamente
       verses.forEach((_, i) => {
         document.getElementById(`pt-wrapper-${i}`).style.display = "none";
       });
     });
+
+    document.getElementById("stopAll").addEventListener("click", stopAllAudio);
   </script>
 </body>
 </html>
