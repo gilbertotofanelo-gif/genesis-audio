@@ -84,7 +84,7 @@
     <button id="playAllPT" style="font-size:12px; padding:0.3rem 0.8rem;">▶️ PT</button>
     <button id="stopAll" style="font-size:12px; padding:0.3rem 0.8rem;">⏹️ Stop</button>
 
-    <label for="globalSpeed" style="margin-left:0.5rem;">Velocidade:</label>
+    <label for="globalSpeed" style="margin-left:0.5rem;"></label>
     <select id="globalSpeed" style="font-size:12px; padding:0.2rem 0.5rem;">
       <option value="0.75">0.75x</option>
       <option value="1" selected>1x</option>
@@ -155,7 +155,7 @@
         <p class="en" id="en-${i}">${renderTextWithSpans(v.enText)}</p>
         <div class="controls">
           <button style="background-color:#4caf50; color:white;" onclick="toggleTranslation(${i})">🌐 Tradução</button>
-          <label for="speed-en-${i}" style="font-size:12px;">Velocidade:</label>
+          <label for="speed-en-${i}" style="font-size:12px;"></label>
           <select id="speed-en-${i}" onchange="changeSpeed(${i}, 'en', this.value)">
             <option value="0.75">0.75x</option>
             <option value="1" selected>1x</option>
@@ -167,7 +167,7 @@
         <div id="pt-wrapper-${i}" style="display:none;">
           <p class="pt" id="pt-${i}">${renderTextWithSpans(v.ptText)}</p>
           <div class="controls">
-            <label for="speed-pt-${i}" style="font-size:12px;">Velocidade:</label>
+            <label for="speed-pt-${i}" style="font-size:12px;"></label>
             <select id="speed-pt-${i}" onchange="changeSpeed(${i}, 'pt', this.value)">
               <option value="0.75">0.75x</option>
               <option value="1" selected>1x</option>
@@ -306,8 +306,9 @@
       verses.forEach((_, i) => {
         document.getElementById(`audio-en-${i}`).playbackRate = speed;
         document.getElementById(`audio-pt-${i}`).playbackRate = speed;
+        
       });
-    });
+      });
 
     document.getElementById("playAllEN").addEventListener("click", async () => {
       stopAllAudio();
